@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Курсы валют</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        table { border-collapse: collapse; }
+        td, th { border: 1px solid black; padding: 8px 20px; }
+        th { background-color: lightgray; }
+        .up { color: green; }
+        .down { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Курсы валют ЦБ РФ</h1>
+    <p id="date">Дата: загрузка...</p>
+
+    <input type="text" id="search" placeholder="Поиск по коду (USD)" oninput="showTable()">
+    <br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Код</th>
+                <th>Название</th>
+                <th>Номинал</th>
+                <th>Курс (руб.)</th>
+                <th>Изменение</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+
+    <br>
+    <button onclick="loadRates()">Обновить</button>
+
+    <script>
+        let rates = [];
+
+        function loadRates() {
+            fetch("/api/rates")
+                .then(response => response.json())
+                .then(data => {
+                    rates = data.rates;
+                    document.getElementById("date").innerText = "Дата: " + data.date;
+                    showTable();
+                });
+        }
+
+        function showTable() {
+            let search = document.getElementById("search").value.toUpperCase();
+            let html = "";
+
+            for (let i = 0; i < rates.length; i++) {
+                let r = rates[i];
+                if (r.code.indexOf(search) === -1) {
+                    continue;
+                }
+
+                let cls = r.change >= 0 ? "up" : "down";
+                html += "<tr>";
+                html += "<td>" + r.code + "</td>";
+                html += "<td>" + r.name + "</td>";
+                html += "<td>" + r.nominal + "</td>";
+                html += "<td>" + r.value + "</td>";
+                html += "<td class='" + cls + "'>" + r.change + "</td>";
+                html += "</tr>";
+            }
+
+            document.getElementById("tbody").innerHTML = html;
+        }
+
+        loadRates();
+    </script>
+</body>
+</html>
